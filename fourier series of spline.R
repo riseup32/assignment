@@ -1,5 +1,5 @@
-data <- read.csv('hwdata.csv')
-data$x <- 1:nrow(data)
+date <- read.csv('hwdata.csv')
+date$x <- 1:nrow(date)
 
 fourier_spline <- function(data,x,y,period,k){
  A <- NULL
