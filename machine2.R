@@ -6,11 +6,11 @@ library(e1071)
 wine.data <- read.csv('C:/Users/User/Desktop/winequality-both.csv')
 str(wine.data)
 set.seed(123)
-A <- sample(6497,6497,replace=F)
+A <- sample(nrow(wine.data),nrow(wine.data),replace=F)
 wine.data <- wine.data[A,]
-n <- round(6497*0.7)
+n <- round(nrow(wine.data)*0.7)
 wine <- wine.data[1:n,]
-test <- wine.data[(n+1):6497,]
+test <- wine.data[(n+1):nrow(wine.data),]
 
 
 machine <- function(model,data,test,y){
@@ -92,7 +92,7 @@ machine <- function(model,data,test,y){
   cv.test_y <- y1[m]
   cv.train_y <- y1[-m]
    for(j in model){
-    if(j=='lr') {model <- glm(cv.train_y~.,data=cv.train_x,family='binomial')}
+    if(j=='lr') {cv.model <- glm(cv.train_y~.,data=cv.train_x,family='binomial')}
     else if(j=='mn') {cv.model <- multinom(cv.train_y~.,data=cv.train_x)}
     else if(j=='dt') {cv.model <- ctree(cv.train_y~.,data=cv.train_x)}
     else if(j=='rf') {cv.model <- randomForest(cv.train_y~.,data=cv.train_x,mtry=round(sqrt(ncol(data))),ntree=500)}
