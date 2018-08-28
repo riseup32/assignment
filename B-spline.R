@@ -18,16 +18,16 @@ B_spline <- function(data,x,y,interval){
   B <- cbind(B,A)
  }
 
- B <- as.data.frame(B)
+ df <- as.data.frame(B)
 
  for(i in 0:round(nrow(data)/interval)){
- colnames(B)[i] <- paste0('A',i)
+ colnames(df)[i] <- paste0('A',i)
  }
 
- lm <- lm(data[,grep(y,colnames(data))]~.,data=B)
+ lm <- lm(data[,grep(y,colnames(data))]~.,data=df)
 
- plot(date[,grep(x,colnames(data))],date[,grep(y,colnames(data))])
- lines(date[,grep(x,colnames(data))],predict(lm,B),col='red')
+ plot(data[,grep(x,colnames(data))],data[,grep(y,colnames(data))])
+ lines(data[,grep(x,colnames(data))],predict(lm,df),col='red')
 }
 
 B_spline(date,'x','Æò±Õ±â¿Â..C.',90)
