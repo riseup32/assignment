@@ -67,10 +67,7 @@ machine <- function(model,data,test,y){
  }
 
  for(i in 1:ncol(data)){
-  if(is.numeric(data[,i])) {Q1 <- quantile(data[,i],0.25)}
-  if(is.numeric(data[,i])) {Q3 <- quantile(data[,i],0.75)}
-  if(is.numeric(data[,i])) {IQR <- Q3-Q1}
-  if(is.numeric(data[,i])) {data <- data[data[,i]>=Q1-1.5*IQR & data[,i]<=Q3+1.5*IQR,]}
+  if(is.numeric(data[,i])) {data <- data[data[,i]>=quantile(data[,i],0.005) & data[,i]<=quantile(data[,i],0.995),]}
  }
 
  for(i in 1:ncol(data)){
@@ -102,7 +99,7 @@ machine <- function(model,data,test,y){
 
   if(model=='lr') {predict.value <- predict.value <- round(1/(1+exp(-predict.value)))}  
   if(model=='lr') {predict.value <- as.factor(predict.value)}
-
+  
   mse <- mean((as.numeric(predict.value)-as.numeric(cv.test_y))^2)
   sum.mse <- sum.mse+mse
   }
@@ -135,7 +132,7 @@ machine <- function(model,data,test,y){
 
  value <- mean(as.numeric(predict)==as.numeric(y2))
  prediction <- paste0(round(value*100,2),'%')
-
+ 
  y <- y2
  cat('model:',modelNm,'\n',
  'cv.value',':',cv.value,'\n',
