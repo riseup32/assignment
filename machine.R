@@ -13,7 +13,7 @@ wine <- wine.data[1:n,]
 test <- wine.data[(n+1):nrow(wine.data),]
 
 
-machine <- function(model,data,test,y){
+machine <- function(model,data,test,y,method='normal',scale=TRUE){
  data[,grep(y,colnames(data))] <- as.factor(data[,grep(y,colnames(data))])
  test[,grep(y,colnames(test))] <- as.factor(test[,grep(y,colnames(test))])
  
@@ -74,6 +74,25 @@ machine <- function(model,data,test,y){
   if(is.factor(data[,i]) & (length(levels(data[,i]))>length(levels(test[,i])))) {levels(test[,i]) <- levels(data[,i])}
   if(is.factor(data[,i]) & (length(levels(data[,i]))<length(levels(test[,i])))) {levels(data[,i]) <- levels(test[,i])}
  }
+
+ num <- NULL
+ for(i in 1:ncol(data)){
+  if(is.numeric(data[,i])) {num <- c(num,TRUE)}
+  else {num <- c(num,FALSE)}
+ }
+ if(scale==TRUE) {data[,num] <- scale(data[,num])}
+
+ n_pca <- which(summary(prcomp(data[,num]))$importance[3,]>=0.85)[1]
+ if(method=='pca') {data <- data.frame(prcomp(data[,num])$x[,1:n_pca],data[,!num])}
+
+ num2 <- NULL
+ for(i in 1:ncol(test)){
+  if(is.numeric(test[,i])) {num2 <- c(num2,TRUE)}
+  else {num2 <- c(num2,FALSE)}
+ }
+ if(scale==TRUE) {test[,num2] <- scale(test[,num2])}
+
+ if(method=='pca') {test <- data.frame(prcomp(test[,num2])$x[,1:n_pca],test[,!num2])}
  
  x1 <- data[,-grep(y,colnames(data))]
  y1 <- data[,grep(y,colnames(data))]
@@ -144,7 +163,7 @@ machine <- function(model,data,test,y){
  }
 }
 
-machine('mn',wine,test,'quality')
-machine('rf',wine,test,'quality')
-machine('nb',wine,test,'quality')
+machine('mn',wine,test,'quality',scale=FALSE)
+machine('rf',wine,test,'quality',scale=FALSE)
+machine('nb',wine,test,'quality',scale=FALSE)
 
