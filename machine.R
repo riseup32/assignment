@@ -13,7 +13,7 @@ wine <- wine.data[1:n,]
 test <- wine.data[(n+1):nrow(wine.data),]
 
 
-machine <- function(model,data,test,y,method='normal',scale=TRUE){
+machine <- function(model,data,test,y,outlier=TRUE,method='normal',mtry=round(sqrt(ncol(data))),ntree=500,kernel='radial',cost=1,scale=TRUE){
  data[,grep(y,colnames(data))] <- as.factor(data[,grep(y,colnames(data))])
  test[,grep(y,colnames(test))] <- as.factor(test[,grep(y,colnames(test))])
  
@@ -67,7 +67,7 @@ machine <- function(model,data,test,y,method='normal',scale=TRUE){
  }
 
  for(i in 1:ncol(data)){
-  if(is.numeric(data[,i])) {data <- data[data[,i]>=quantile(data[,i],0.005) & data[,i]<=quantile(data[,i],0.995),]}
+  if(outlier==T & is.numeric(data[,i])) {data <- data[data[,i]>=quantile(data[,i],0.005) & data[,i]<=quantile(data[,i],0.995),]}
  }
 
  for(i in 1:ncol(data)){
@@ -107,13 +107,15 @@ machine <- function(model,data,test,y,method='normal',scale=TRUE){
   cv.train_x <- x1[-m,]
   cv.test_y <- y1[m]
   cv.train_y <- y1[-m]
-   for(j in model){
-    if(j=='lr') {cv.model <- glm(cv.train_y~.,data=cv.train_x,family='binomial')}
-    else if(j=='mn') {cv.model <- multinom(cv.train_y~.,data=cv.train_x)}
-    else if(j=='dt') {cv.model <- ctree(cv.train_y~.,data=cv.train_x)}
-    else if(j=='rf') {cv.model <- randomForest(cv.train_y~.,data=cv.train_x,mtry=round(sqrt(ncol(data))),ntree=500)}
-    else if(j=='nb') {cv.model <- naiveBayes(cv.train_y~.,data=cv.train_x)}
-   }
+  for(j in model){
+   if(j=='lr') {cv.model <- glm(cv.train_y~.,data=cv.train_x,family='binomial')}
+   else if(j=='mn') {cv.model <- multinom(cv.train_y~.,data=cv.train_x)}
+   else if(j=='dt') {cv.model <- ctree(cv.train_y~.,data=cv.train_x)}
+   else if(j=='rf') {cv.model <- randomForest(cv.train_y~.,data=cv.train_x,mtry=mtry,ntree=ntree)}
+   else if(j=='nb') {cv.model <- naiveBayes(cv.train_y~.,data=cv.train_x)}
+   else if(j=='lm') {cv.model <- lm(cv.train_y~.,data=cv.train_x)}
+   else if(j=='svm') {cv.model <- svm(cv.train_y~.,data=cv.train_x,kernel=kernel,cost=cost,scale=scale)}
+  }
   predict.value <- predict(cv.model,cv.test_x)
 
   if(model=='lr') {predict.value <- predict.value <- round(1/(1+exp(-predict.value)))}  
@@ -134,15 +136,19 @@ machine <- function(model,data,test,y,method='normal',scale=TRUE){
    else if(i=='dt') {modelNm <- 'decision tree'}
    else if(i=='rf') {modelNm <- 'random forest'}
    else if(i=='nb') {modelNm <- 'naive bayes'}
+   else if(i=='lm') {modelNm <- 'linear regression'}
+   else if(i=='svm') {modelNm <- 'support vector machine'}
   }
 
   for(i in model){
   if(i=='lr') {model <- glm(y1~.,data=x1,family='binomial')}
   else if(i=='mn') {model <- multinom(y1~.,data=x1)}
   else if(i=='dt') {model <- ctree(y1~.,data=x1)}
-  else if(i=='rf') {model <- randomForest(y1~.,data=x1,mtry=round(sqrt(ncol(data))),ntree=500)}
+  else if(i=='rf') {model <- randomForest(y1~.,data=x1,mtry=mtry,ntree=ntree)}
   else if(i=='nb') {model <- naiveBayes(y1~.,data=x1)}
- }
+  else if(i=='lm') {model <- lm(y1~.,data=x1)}
+  else if(i=='svm') {model <- svm(y1~.,data=x1,kernel=kernel,cost=cost,scale=scale)}
+  }
 
  predict <- predict(model,test)
 
